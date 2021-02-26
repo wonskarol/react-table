@@ -1,9 +1,23 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useTable, usePagination, useRowSelect, useSortBy } from 'react-table'
+import {
+  useTable,
+  usePagination,
+  useRowSelect,
+  useExpanded,
+  useFilters,
+  useSortBy,
+} from 'react-table'
+import { FiChevronDown, FiChevronRight } from 'react-icons/fi'
 
 import { EditableCell } from './EditableCell'
 import makeData from './makeData'
+import { ColumnHeader } from './ColumnHeader'
+import {
+  useFilterTypes,
+  DefaultColumnFilter,
+  SelectColumnFilter,
+} from './filtering'
 
 const Styles = styled.div`
   padding: 1rem;
@@ -63,12 +77,16 @@ const IndeterminateCheckbox = React.forwardRef(
 )
 
 function Table({ columns, data, updateMyData }) {
-  // Set our editable cell renderer as the default Cell renderer
-  const defaultColumn = {
-    Cell: EditableCell,
-  }
-
   // Use the state and functions returned from useTable to build your UI
+  const filterTypes = useFilterTypes()
+  const defaultColumn = React.useMemo(
+    () => ({
+      // Let's set up our default Filter UI
+      Filter: DefaultColumnFilter,
+      Cell: EditableCell,
+    }),
+    []
+  )
   const {
     getTableProps,
     getTableBodyProps,
@@ -87,22 +105,47 @@ function Table({ columns, data, updateMyData }) {
     previousPage,
     setPageSize,
     selectedFlatRows,
-    state: { pageIndex, pageSize, selectedRowIds },
+    state: { pageIndex, pageSize, selectedRowIds, expanded },
   } = useTable(
     {
       columns,
       data,
+      filterTypes,
       defaultColumn,
       updateMyData,
       autoResetPage: false,
       autoResetSelectedRows: false,
       autoResetSortBy: false,
     },
+    useFilters,
     useSortBy,
+    useExpanded,
     usePagination,
     useRowSelect,
     hooks => {
       hooks.visibleColumns.push(columns => [
+        {
+          id: 'expander',
+          Header: ({ getToggleAllRowsExpandedProps, isAllRowsExpanded }) => (
+            <div {...getToggleAllRowsExpandedProps()}>
+              <span>
+                {isAllRowsExpanded ? <FiChevronDown /> : <FiChevronRight />}
+              </span>
+            </div>
+          ),
+          Cell: ({ row }) =>
+            row.canExpand ? (
+              <span
+                {...row.getToggleRowExpandedProps({
+                  style: {
+                    paddingLeft: `${row.depth * 2}rem`,
+                  },
+                })}
+              >
+                {row.isExpanded ? <FiChevronDown /> : <FiChevronRight />}
+              </span>
+            ) : null,
+        },
         // Let's make a column for selection
         {
           id: 'selection',
@@ -134,16 +177,7 @@ function Table({ columns, data, updateMyData }) {
           {headerGroups.map(headerGroup => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map(column => (
-                <th {...column.getHeaderProps(column.getSortByToggleProps())}>
-                  {column.render('Header')}
-                  <span>
-                    {column.isSorted
-                      ? column.isSortedDesc
-                        ? ' 🔽'
-                        : ' 🔼'
-                      : ''}
-                  </span>
-                </th>
+                <ColumnHeader key={column.getHeaderProps().key} {...column} />
               ))}
             </tr>
           ))}
@@ -220,6 +254,7 @@ function Table({ columns, data, updateMyData }) {
                 pageCount,
                 canNextPage,
                 canPreviousPage,
+                expanded,
               },
               null,
               2
@@ -257,10 +292,12 @@ function App() {
           {
             Header: 'First Name',
             accessor: 'firstName',
+            filter: 'fuzzyText',
           },
           {
             Header: 'Last Name',
             accessor: 'lastName',
+            filter: 'fuzzyText',
           },
         ],
       },
@@ -278,6 +315,8 @@ function App() {
           {
             Header: 'Status',
             accessor: 'status',
+            Filter: SelectColumnFilter,
+            filter: 'includes',
           },
           {
             Header: 'Profile Progress',
@@ -289,7 +328,8 @@ function App() {
     []
   )
 
-  const [data, setData] = React.useState(() => makeData(10000))
+  const initialData = React.useMemo(() => makeData(100, 5, 5, 5), [])
+  const [data, setData] = React.useState(initialData)
 
   // When our cell renderer calls updateMyData, we'll use
   // the rowIndex, columnId and new value to update the
