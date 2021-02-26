@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useTable, usePagination, useRowSelect, useExpanded, useFilters } from 'react-table'
+import { useTable, usePagination, useRowSelect, useExpanded, useFilters, useResizeColumns, useBlockLayout } from 'react-table'
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 
 import { EditableCell } from './EditableCell'
@@ -39,6 +39,7 @@ const Styles = styled.div`
         padding: 0;
         margin: 0;
         border: 0;
+        max-width: 100%;
       }
     }
   }
@@ -70,6 +71,9 @@ function Table({ columns, data, updateMyData }) {
   const filterTypes = useFilterTypes();
   const defaultColumn = React.useMemo(
     () => ({
+      minWidth: 30,
+      width: 150,
+      maxWidth: 400,
       // Let's set up our default Filter UI
       Filter: DefaultColumnFilter,
       Cell: EditableCell,
@@ -109,6 +113,8 @@ function Table({ columns, data, updateMyData }) {
     useExpanded,
     usePagination,
     useRowSelect,
+    useResizeColumns,
+    useBlockLayout,
     hooks => {
       hooks.visibleColumns.push(columns => [
         {
