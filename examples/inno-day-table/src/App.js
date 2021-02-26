@@ -1,10 +1,12 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useTable, usePagination, useRowSelect, useExpanded } from 'react-table'
+import { useTable, usePagination, useRowSelect, useExpanded, useFilters } from 'react-table'
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 
 import { EditableCell } from './EditableCell'
 import makeData from './makeData'
+import { ColumnHeader } from './ColumnHeader'
+import { useFilterTypes, DefaultColumnFilter, SelectColumnFilter } from './filtering'
 
 const Styles = styled.div`
   padding: 1rem;
@@ -64,12 +66,16 @@ const IndeterminateCheckbox = React.forwardRef(
 )
 
 function Table({ columns, data, updateMyData }) {
-  // Set our editable cell renderer as the default Cell renderer
-  const defaultColumn = {
-    Cell: EditableCell,
-  }
-
   // Use the state and functions returned from useTable to build your UI
+  const filterTypes = useFilterTypes();
+  const defaultColumn = React.useMemo(
+    () => ({
+      // Let's set up our default Filter UI
+      Filter: DefaultColumnFilter,
+      Cell: EditableCell,
+    }),
+    []
+  )
   const {
     getTableProps,
     getTableBodyProps,
@@ -93,11 +99,13 @@ function Table({ columns, data, updateMyData }) {
     {
       columns,
       data,
+      filterTypes,
       defaultColumn,
       updateMyData,
       autoResetPage: false,
       autoResetSelectedRows: false,
     },
+    useFilters,
     useExpanded,
     usePagination,
     useRowSelect,
@@ -155,7 +163,7 @@ function Table({ columns, data, updateMyData }) {
           {headerGroups.map(headerGroup => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map(column => (
-                <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+                <ColumnHeader {...column} />
               ))}
             </tr>
           ))}
@@ -270,10 +278,12 @@ function App() {
           {
             Header: 'First Name',
             accessor: 'firstName',
+            filter: 'fuzzyText',
           },
           {
             Header: 'Last Name',
             accessor: 'lastName',
+            filter: 'fuzzyText',
           },
         ],
       },
@@ -282,19 +292,18 @@ function App() {
         columns: [
           {
             Header: 'Age',
-            accessor: 'age',
           },
           {
             Header: 'Visits',
-            accessor: 'visits',
           },
           {
             Header: 'Status',
             accessor: 'status',
+            Filter: SelectColumnFilter,
+            filter: 'includes',
           },
           {
             Header: 'Profile Progress',
-            accessor: 'progress',
           },
         ],
       },
