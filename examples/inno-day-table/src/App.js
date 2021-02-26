@@ -7,6 +7,7 @@ import { EditableCell } from './EditableCell'
 import makeData from './makeData'
 import { ColumnHeader } from './ColumnHeader'
 import { useFilterTypes, DefaultColumnFilter, SelectColumnFilter } from './filtering'
+import { calculateExpandedLevels } from './calculateExpandedLevels';
 
 const Styles = styled.div`
   padding: 1rem;
@@ -116,7 +117,7 @@ function Table({ columns, data, updateMyData }) {
     useResizeColumns,
     useFlexLayout,
     hooks => {
-      hooks.visibleColumns.push(columns => [
+      hooks.visibleColumns.push((columns, meta) => [
         {
           id: 'expander',
           Header: ({ getToggleAllRowsExpandedProps, isAllRowsExpanded }) => (
@@ -164,6 +165,8 @@ function Table({ columns, data, updateMyData }) {
       ])
     }
   )
+
+  console.log(`Expanded levels: ${calculateExpandedLevels(expanded)}`);
 
   // Render the UI for your table
   return (
