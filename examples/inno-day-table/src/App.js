@@ -87,7 +87,6 @@ function Table({ columns, data, updateMyData }) {
     previousPage,
     setPageSize,
     selectedFlatRows,
-    preSortedRows,
     state: { pageIndex, pageSize, selectedRowIds },
   } = useTable(
     {
