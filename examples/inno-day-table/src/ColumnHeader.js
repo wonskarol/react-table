@@ -32,7 +32,7 @@ export const ColumnHeader = (props) => {
                     <button onClick={() => setIsFiltering(false)}>❌</button>
                 </>
             )}
-            <Resizer {...props.getResizerProps()} isResizing={props.isResizing} />
+            {props.getResizerProps && <Resizer {...props.getResizerProps()} isResizing={props.isResizing} />}
         </th>
     )
 }

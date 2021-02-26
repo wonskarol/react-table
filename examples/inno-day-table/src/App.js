@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useTable, usePagination, useRowSelect, useExpanded, useFilters, useResizeColumns, useBlockLayout } from 'react-table'
+import { useTable, usePagination, useRowSelect, useExpanded, useFilters, useResizeColumns, useFlexLayout } from 'react-table'
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 
 import { EditableCell } from './EditableCell'
@@ -114,7 +114,7 @@ function Table({ columns, data, updateMyData }) {
     usePagination,
     useRowSelect,
     useResizeColumns,
-    useBlockLayout,
+    useFlexLayout,
     hooks => {
       hooks.visibleColumns.push(columns => [
         {
@@ -136,7 +136,9 @@ function Table({ columns, data, updateMyData }) {
                 {row.isExpanded ? <FiChevronDown /> : <FiChevronRight />}
               </span>
             ) : null
-          )
+          ),
+          minWidth: 25,
+          disableResizing: true,
         },
         // Let's make a column for selection
         {
@@ -155,6 +157,8 @@ function Table({ columns, data, updateMyData }) {
               <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />
             </div>
           ),
+          width: 25,
+          disableResizing: true,
         },
         ...columns,
       ])
