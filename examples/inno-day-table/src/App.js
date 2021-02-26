@@ -2,6 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import { useTable, usePagination, useRowSelect, useFilters } from 'react-table'
 
+import { EditableCell } from './EditableCell'
 import makeData from './makeData'
 import { ColumnHeader } from './ColumnHeader'
 import { useFilterTypes, DefaultColumnFilter, SelectColumnFilter } from './filtering'
@@ -31,6 +32,13 @@ const Styles = styled.div`
       :last-child {
         border-right: 0;
       }
+
+      input {
+        font-size: 1rem;
+        padding: 0;
+        margin: 0;
+        border: 0;
+      }
     }
   }
 
@@ -56,13 +64,14 @@ const IndeterminateCheckbox = React.forwardRef(
   }
 )
 
-function Table({ columns, data }) {
+function Table({ columns, data, updateMyData }) {
   // Use the state and functions returned from useTable to build your UI
   const filterTypes = useFilterTypes();
   const defaultColumn = React.useMemo(
     () => ({
       // Let's set up our default Filter UI
       Filter: DefaultColumnFilter,
+      Cell: EditableCell,
     }),
     []
   )
@@ -90,7 +99,10 @@ function Table({ columns, data }) {
       columns,
       data,
       filterTypes,
-      defaultColumn
+      defaultColumn,
+      updateMyData,
+      autoResetPage: false,
+      autoResetSelectedRows: false,
     },
     useFilters,
     usePagination,
@@ -123,21 +135,6 @@ function Table({ columns, data }) {
   // Render the UI for your table
   return (
     <>
-      <pre>
-        <code>
-          {JSON.stringify(
-            {
-              pageIndex,
-              pageSize,
-              pageCount,
-              canNextPage,
-              canPreviousPage,
-            },
-            null,
-            2
-          )}
-        </code>
-      </pre>
       <table {...getTableProps()}>
         <thead>
           {headerGroups.map(headerGroup => (
@@ -161,8 +158,8 @@ function Table({ columns, data }) {
           })}
         </tbody>
       </table>
-      {/* 
-        Pagination can be built however you'd like. 
+      {/*
+        Pagination can be built however you'd like.
         This is just a very basic UI implementation:
       */}
       <div className="pagination">
@@ -208,6 +205,27 @@ function Table({ columns, data }) {
             </option>
           ))}
         </select>
+      </div>
+      <>
+        <h2>Pagination debugger</h2>
+        <pre>
+          <code>
+            {JSON.stringify(
+              {
+                pageIndex,
+                pageSize,
+                pageCount,
+                canNextPage,
+                canPreviousPage,
+              },
+              null,
+              2
+            )}
+          </code>
+        </pre>
+      </>
+      <>
+        <h2>Selected rows debugger</h2>
         <pre>
           <code>
             {JSON.stringify(
@@ -222,7 +240,7 @@ function Table({ columns, data }) {
             )}
           </code>
         </pre>
-      </div>
+      </>
     </>
   )
 }
@@ -269,11 +287,28 @@ function App() {
     []
   )
 
-  const data = React.useMemo(() => makeData(1000), [])
+  const [data, setData] = React.useState(() => makeData(100000))
+
+  // When our cell renderer calls updateMyData, we'll use
+  // the rowIndex, columnId and new value to update the
+  // original data
+  const updateMyData = (rowIndex, columnId, value) => {
+    setData(old =>
+      old.map((row, index) => {
+        if (index === rowIndex) {
+          return {
+            ...old[rowIndex],
+            [columnId]: value,
+          }
+        }
+        return row
+      })
+    )
+  }
 
   return (
     <Styles>
-      <Table columns={columns} data={data} />
+      <Table columns={columns} data={data} updateMyData={updateMyData} />
     </Styles>
   )
 }
