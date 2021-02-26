@@ -1,12 +1,23 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useTable, usePagination, useRowSelect, useExpanded, useFilters } from 'react-table'
-import { FiChevronDown, FiChevronRight } from "react-icons/fi";
+import {
+  useTable,
+  usePagination,
+  useRowSelect,
+  useExpanded,
+  useFilters,
+  useSortBy,
+} from 'react-table'
+import { FiChevronDown, FiChevronRight } from 'react-icons/fi'
 
 import { EditableCell } from './EditableCell'
 import makeData from './makeData'
 import { ColumnHeader } from './ColumnHeader'
-import { useFilterTypes, DefaultColumnFilter, SelectColumnFilter } from './filtering'
+import {
+  useFilterTypes,
+  DefaultColumnFilter,
+  SelectColumnFilter,
+} from './filtering'
 
 const Styles = styled.div`
   padding: 1rem;
@@ -67,7 +78,7 @@ const IndeterminateCheckbox = React.forwardRef(
 
 function Table({ columns, data, updateMyData }) {
   // Use the state and functions returned from useTable to build your UI
-  const filterTypes = useFilterTypes();
+  const filterTypes = useFilterTypes()
   const defaultColumn = React.useMemo(
     () => ({
       // Let's set up our default Filter UI
@@ -104,8 +115,10 @@ function Table({ columns, data, updateMyData }) {
       updateMyData,
       autoResetPage: false,
       autoResetSelectedRows: false,
+      autoResetSortBy: false,
     },
     useFilters,
+    useSortBy,
     useExpanded,
     usePagination,
     useRowSelect,
@@ -115,10 +128,12 @@ function Table({ columns, data, updateMyData }) {
           id: 'expander',
           Header: ({ getToggleAllRowsExpandedProps, isAllRowsExpanded }) => (
             <div {...getToggleAllRowsExpandedProps()}>
-              <span>{isAllRowsExpanded ? <FiChevronDown /> : <FiChevronRight />}</span>
+              <span>
+                {isAllRowsExpanded ? <FiChevronDown /> : <FiChevronRight />}
+              </span>
             </div>
           ),
-          Cell: ({ row }) => (
+          Cell: ({ row }) =>
             row.canExpand ? (
               <span
                 {...row.getToggleRowExpandedProps({
@@ -129,8 +144,7 @@ function Table({ columns, data, updateMyData }) {
               >
                 {row.isExpanded ? <FiChevronDown /> : <FiChevronRight />}
               </span>
-            ) : null
-          )
+            ) : null,
         },
         // Let's make a column for selection
         {
@@ -163,7 +177,7 @@ function Table({ columns, data, updateMyData }) {
           {headerGroups.map(headerGroup => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map(column => (
-                <ColumnHeader {...column} />
+                <ColumnHeader key={column.getHeaderProps().key} {...column} />
               ))}
             </tr>
           ))}
@@ -240,7 +254,7 @@ function Table({ columns, data, updateMyData }) {
                 pageCount,
                 canNextPage,
                 canPreviousPage,
-                expanded
+                expanded,
               },
               null,
               2
@@ -292,9 +306,11 @@ function App() {
         columns: [
           {
             Header: 'Age',
+            accessor: 'age',
           },
           {
             Header: 'Visits',
+            accessor: 'visits',
           },
           {
             Header: 'Status',
@@ -304,6 +320,7 @@ function App() {
           },
           {
             Header: 'Profile Progress',
+            accessor: 'progress',
           },
         ],
       },

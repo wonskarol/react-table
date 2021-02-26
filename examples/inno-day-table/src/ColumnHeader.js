@@ -1,23 +1,42 @@
-import React from 'react';
+import React from 'react'
+import { FiArrowUp, FiArrowDown, FiSearch, FiXCircle } from 'react-icons/fi'
 
-export const ColumnHeader = (props) => {
-    const [isFiltering, setIsFiltering] = React.useState(false);
+export const ColumnHeader = props => {
+  const [isFiltering, setIsFiltering] = React.useState(false)
 
-    console.log(props);
-    return (
-        <th {...props.getHeaderProps()}>
-            { !isFiltering && (
-                <>
-                    {props.render('Header')}
-                    <div>{props.canFilter ? <button onClick={() => setIsFiltering(true)}>🔍</button> : null}</div>
-                </>
+  return (
+    <th {...props.getHeaderProps()}>
+      {!isFiltering && (
+        <>
+          <span {...props.getSortByToggleProps()}>
+            {props.render('Header')}
+            {props.isSorted ? (
+              props.isSortedDesc ? (
+                <FiArrowDown />
+              ) : (
+                <FiArrowUp />
+              )
+            ) : (
+              ''
             )}
-            { isFiltering && (
-                <>
-                    {props.render("Filter")}
-                    <button onClick={() => setIsFiltering(false)}>❌</button>
-                </>
-            )}
-        </th>
-    )
+          </span>
+          <div>
+            {props.canFilter ? (
+              <button onClick={() => setIsFiltering(true)}>
+                <FiSearch />
+              </button>
+            ) : null}
+          </div>
+        </>
+      )}
+      {isFiltering && (
+        <>
+          {props.render('Filter')}
+          <button onClick={() => setIsFiltering(false)}>
+            <FiXCircle />
+          </button>
+        </>
+      )}
+    </th>
+  )
 }
