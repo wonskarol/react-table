@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useTable, usePagination, useRowSelect } from 'react-table'
+import { useTable, usePagination, useRowSelect, useSortBy } from 'react-table'
 
 import { EditableCell } from './EditableCell'
 import makeData from './makeData'
@@ -87,6 +87,7 @@ function Table({ columns, data, updateMyData }) {
     previousPage,
     setPageSize,
     selectedFlatRows,
+    preSortedRows,
     state: { pageIndex, pageSize, selectedRowIds },
   } = useTable(
     {
@@ -96,7 +97,9 @@ function Table({ columns, data, updateMyData }) {
       updateMyData,
       autoResetPage: false,
       autoResetSelectedRows: false,
+      autoResetSortBy: false,
     },
+    useSortBy,
     usePagination,
     useRowSelect,
     hooks => {
@@ -132,7 +135,16 @@ function Table({ columns, data, updateMyData }) {
           {headerGroups.map(headerGroup => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map(column => (
-                <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+                <th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                  {column.render('Header')}
+                  <span>
+                    {column.isSorted
+                      ? column.isSortedDesc
+                        ? ' 🔽'
+                        : ' 🔼'
+                      : ''}
+                  </span>
+                </th>
               ))}
             </tr>
           ))}
@@ -278,7 +290,7 @@ function App() {
     []
   )
 
-  const [data, setData] = React.useState(() => makeData(100000))
+  const [data, setData] = React.useState(() => makeData(10000))
 
   // When our cell renderer calls updateMyData, we'll use
   // the rowIndex, columnId and new value to update the
