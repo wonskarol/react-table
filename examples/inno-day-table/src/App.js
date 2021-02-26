@@ -1,8 +1,10 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useTable, usePagination, useRowSelect } from 'react-table'
+import { useTable, usePagination, useRowSelect, useFilters } from 'react-table'
 
 import makeData from './makeData'
+import { ColumnHeader } from './ColumnHeader'
+import { useFilterTypes, DefaultColumnFilter, SelectColumnFilter } from './filtering'
 
 const Styles = styled.div`
   padding: 1rem;
@@ -56,6 +58,14 @@ const IndeterminateCheckbox = React.forwardRef(
 
 function Table({ columns, data }) {
   // Use the state and functions returned from useTable to build your UI
+  const filterTypes = useFilterTypes();
+  const defaultColumn = React.useMemo(
+    () => ({
+      // Let's set up our default Filter UI
+      Filter: DefaultColumnFilter,
+    }),
+    []
+  )
   const {
     getTableProps,
     getTableBodyProps,
@@ -79,7 +89,10 @@ function Table({ columns, data }) {
     {
       columns,
       data,
+      filterTypes,
+      defaultColumn
     },
+    useFilters,
     usePagination,
     useRowSelect,
     hooks => {
@@ -130,7 +143,7 @@ function Table({ columns, data }) {
           {headerGroups.map(headerGroup => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map(column => (
-                <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+                <ColumnHeader {...column} />
               ))}
             </tr>
           ))}
@@ -223,10 +236,12 @@ function App() {
           {
             Header: 'First Name',
             accessor: 'firstName',
+            filter: 'fuzzyText',
           },
           {
             Header: 'Last Name',
             accessor: 'lastName',
+            filter: 'fuzzyText',
           },
         ],
       },
@@ -235,19 +250,18 @@ function App() {
         columns: [
           {
             Header: 'Age',
-            accessor: 'age',
           },
           {
             Header: 'Visits',
-            accessor: 'visits',
           },
           {
             Header: 'Status',
             accessor: 'status',
+            Filter: SelectColumnFilter,
+            filter: 'includes',
           },
           {
             Header: 'Profile Progress',
-            accessor: 'progress',
           },
         ],
       },
@@ -255,7 +269,7 @@ function App() {
     []
   )
 
-  const data = React.useMemo(() => makeData(100000), [])
+  const data = React.useMemo(() => makeData(1000), [])
 
   return (
     <Styles>
