@@ -1,5 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
+import produce from 'immer'
 import {
   useTable,
   usePagination,
@@ -328,24 +329,25 @@ function App() {
     []
   )
 
-  const initialData = React.useMemo(() => makeData(100, 5, 5, 5), [])
-  const [data, setData] = React.useState(initialData)
+  const [data, setData] = React.useState(() => makeData(100, 5, 5, 5))
 
   // When our cell renderer calls updateMyData, we'll use
   // the rowIndex, columnId and new value to update the
   // original data
-  const updateMyData = (rowIndex, columnId, value) => {
-    setData(old =>
-      old.map((row, index) => {
-        if (index === rowIndex) {
-          return {
-            ...old[rowIndex],
-            [columnId]: value,
-          }
-        }
-        return row
+  const updateMyData = (rowId, columnId, value) => {
+    const rowIdSplit = rowId.split('.')
+    const index = rowIdSplit.pop()
+
+    setData(baseState => {
+      return produce(baseState, draftState => {
+        const rowRef = rowIdSplit.reduce(
+          (prev, curr) => prev[curr].subRows,
+          draftState
+        )
+
+        rowRef[index][columnId] = value
       })
-    )
+    })
   }
 
   return (
